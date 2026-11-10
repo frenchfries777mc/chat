@@ -2,7 +2,7 @@
 alter table public.ffc_msgs add column if not exists kind text not null default 'text';
 alter table public.ffc_msgs add column if not exists meta jsonb;
 alter table public.ffc_msgs drop constraint if exists ffc_msgs_kind_check;
-alter table public.ffc_msgs add constraint ffc_msgs_kind_check check (kind in ('text','sticker','result','ai','bet','bracket','image','sys'));
+alter table public.ffc_msgs add constraint ffc_msgs_kind_check check (kind in ('text','sticker','result','ai','bet','bracket','image','sys','del'));
 drop policy if exists ffc_msgs_ins on public.ffc_msgs;
 create policy ffc_msgs_ins on public.ffc_msgs for insert to authenticated
   with check (user_id=auth.uid() and public.ffc_is_member(room_id) and kind in ('text','sticker','result','ai','image'));
@@ -181,3 +181,74 @@ grant execute on function public.ffc_invite(uuid,uuid[]), public.ffc_kick(uuid,u
 
 alter publication supabase_realtime add table public.ffc_bets;
 alter publication supabase_realtime add table public.ffc_brackets;
+
+-- 😂 메시지 반응
+create table if not exists public.ffc_reacts(
+  msg_id bigint not null references public.ffc_msgs(id) on delete cascade,
+  room_id uuid not null references public.ffc_rooms(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  emoji text not null check (emoji in ('👍','😂','🔥','❤️','😮','😢')),
+  created_at timestamptz not null default now(),
+  primary key(msg_id,user_id,emoji)
+);
+alter table public.ffc_reacts enable row level security;
+drop policy if exists ffc_reacts_sel on public.ffc_reacts;
+create policy ffc_reacts_sel on public.ffc_reacts for select to authenticated using (public.ffc_is_member(room_id));
+drop policy if exists ffc_reacts_ins on public.ffc_reacts;
+create policy ffc_reacts_ins on public.ffc_reacts for insert to authenticated with check (user_id=auth.uid() and public.ffc_is_member(room_id) and exists(select 1 from public.ffc_msgs m where m.id=msg_id and m.room_id=ffc_reacts.room_id));
+drop policy if exists ffc_reacts_del on public.ffc_reacts;
+create policy ffc_reacts_del on public.ffc_reacts for delete to authenticated using (user_id=auth.uid());
+alter table public.ffc_reacts replica identity full;
+
+-- 🗑 보낸 지 5분 안에 지우기
+create or replace function public.ffc_unsend(mid bigint) returns void
+language plpgsql security definer set search_path=public as
+$$ begin
+  update public.ffc_msgs set kind='del', body='삭제된 메시지예요', meta=null
+   where id=mid and user_id=auth.uid() and kind<>'del' and created_at>now()-interval '5 minutes' and kind in ('text','sticker','image','result');
+  if not found then raise exception 'too late'; end if;
+end $$;
+
+-- 📌 그룹방 공지
+alter table public.ffc_rooms add column if not exists notice text;
+alter table public.ffc_rooms add column if not exists notice_by uuid;
+create or replace function public.ffc_set_notice(rid uuid, t text) returns void
+language plpgsql security definer set search_path=public as
+$$ declare me uuid:=auth.uid(); begin
+  if me is null or not public.ffc_is_member(rid) then raise exception 'members'; end if;
+  update public.ffc_rooms set notice=nullif(left(trim(coalesce(t,'')),300),''), notice_by=me where id=rid;
+  insert into public.ffc_msgs(room_id,user_id,body,kind) values(rid,me,case when nullif(trim(coalesce(t,'')),'') is null then '공지를 내렸어요' else '공지를 올렸어요' end,'sys');
+end $$;
+
+-- ⏰ 예약 메시지: 정한 시각이 되면 서버(pg_cron, 1분마다)가 보내요. 대화방을 열어 둔 사람의 화면도 같이 확인해요.
+create table if not exists public.ffc_sched(
+  id bigint generated always as identity primary key,
+  room_id uuid not null references public.ffc_rooms(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  body text not null check (char_length(body) between 1 and 2000),
+  send_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+alter table public.ffc_sched enable row level security;
+drop policy if exists ffc_sched_own on public.ffc_sched;
+create policy ffc_sched_own on public.ffc_sched for select to authenticated using (user_id=auth.uid());
+drop policy if exists ffc_sched_ins on public.ffc_sched;
+create policy ffc_sched_ins on public.ffc_sched for insert to authenticated with check (user_id=auth.uid() and public.ffc_is_member(room_id) and send_at>now() and send_at<now()+interval '30 days');
+drop policy if exists ffc_sched_del on public.ffc_sched;
+create policy ffc_sched_del on public.ffc_sched for delete to authenticated using (user_id=auth.uid());
+create or replace function public.ffc_sched_run() returns int
+language plpgsql security definer set search_path=public as
+$$ declare r record; n int:=0; begin
+  for r in delete from public.ffc_sched where send_at<=now() returning * loop
+    if exists(select 1 from public.ffc_members where room_id=r.room_id and user_id=r.user_id) then
+      insert into public.ffc_msgs(room_id,user_id,body,kind,meta,created_at) values(r.room_id,r.user_id,r.body,'text',jsonb_build_object('sched',true),now()); n:=n+1;
+    end if;
+  end loop; return n;
+end $$;
+create extension if not exists pg_cron;
+select cron.schedule('ffc-sched','* * * * *','select public.ffc_sched_run()');
+
+revoke all on function public.ffc_unsend(bigint), public.ffc_set_notice(uuid,text), public.ffc_sched_run() from public, anon;
+grant execute on function public.ffc_unsend(bigint), public.ffc_set_notice(uuid,text), public.ffc_sched_run() to authenticated;
+alter publication supabase_realtime add table public.ffc_reacts;
+alter publication supabase_realtime add table public.ffc_rooms;
