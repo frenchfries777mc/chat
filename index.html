@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Frenchfries777 Chat</title>
+<meta name="description" content="친구와 1:1 또는 그룹으로 대화해요. Frenchfries777 계정 하나로 바로 쓸 수 있어요.">
+<link rel="icon" href="https://frenchfries777.com/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://frenchfries777.com/games/ff-lang.js?v=20261109c"></script>
+<script src="https://frenchfries777.com/games/ff-auth.js"></script>
+<style>
+:root{--bg:#0e0e0e;--panel:#151515;--line:rgba(217,180,95,.35);--fry:#d9b45f;--text:#ece6d8;--dim:#9a937f;--mine:#d9b45f;--mineText:#1c1405;--other:#232323;--h:100dvh}
+html[data-ff-theme=light]{--bg:#f4f1ea;--panel:#fff;--line:rgba(160,120,30,.4);--fry:#b8923a;--text:#22201a;--dim:#7a7463;--mine:#c8a02a;--mineText:#1c1405;--other:#ebe7dc}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',system-ui,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+.app{display:grid;grid-template-columns:340px 1fr;height:var(--h);max-width:1200px;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.side{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--line);background:var(--panel)}
+.top{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.top a.home{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-family:Oswald,sans-serif;font-weight:700;letter-spacing:.02em}
+.top .fry{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#ffc93c,#ff8a3d);display:flex;align-items:center;justify-content:center;font-size:17px}
+.top .sp{flex:1}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;padding:11px 0;background:none;border:0;border-bottom:2px solid transparent;color:var(--dim);font-weight:700}
+.tabs button.on{color:var(--fry);border-bottom-color:var(--fry)}
+.list{flex:1;overflow-y:auto;min-height:0}
+.row{display:flex;align-items:center;gap:12px;padding:11px 14px;cursor:pointer;border:0;background:none;width:100%;text-align:left}
+.row:hover,.row.on{background:rgba(217,180,95,.1)}
+.av{flex:none;width:44px;height:44px;border-radius:16px;background:linear-gradient(135deg,#3a3a3a,#232323);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--fry);border:1px solid var(--line)}
+.av.g{border-radius:50%}
+.rm{flex:1;min-width:0}
+.rm b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm span{display:block;color:var(--dim);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{flex:none;text-align:right;color:var(--dim);font-size:12px;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.bd{min-width:20px;padding:1px 6px;border-radius:99px;background:#e5484d;color:#fff;font-size:12px;font-weight:700;text-align:center}
+.empty{padding:28px 18px;color:var(--dim);text-align:center;line-height:1.7}
+.new{margin:10px 14px;padding:10px;border:1px solid var(--line);border-radius:12px;background:none;color:var(--fry);font-weight:700;width:calc(100% - 28px)}
+.main{display:flex;flex-direction:column;min-height:0;min-width:0}
+.ch{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+.ch .back{display:none;background:none;border:0;font-size:22px;color:var(--fry);padding:0 6px}
+.ch .t{flex:1;min-width:0}
+.ch .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch .t span{color:var(--dim);font-size:12px}
+.ch .more{background:none;border:1px solid var(--line);border-radius:10px;padding:6px 10px;color:var(--dim);font-size:13px}
+.msgs{flex:1;overflow-y:auto;min-height:0;padding:14px 14px 6px;display:flex;flex-direction:column;gap:4px}
+.day{align-self:center;margin:12px 0 6px;padding:4px 12px;border-radius:99px;background:rgba(127,127,127,.18);color:var(--dim);font-size:12px}
+.older{align-self:center;background:none;border:1px solid var(--line);border-radius:99px;color:var(--dim);padding:5px 14px;font-size:13px;margin-bottom:6px}
+.m{display:flex;gap:8px;align-items:flex-end;max-width:100%}
+.m.me{flex-direction:row-reverse}
+.m .av{width:36px;height:36px;border-radius:13px;font-size:14px;align-self:flex-start}
+.m .col{display:flex;flex-direction:column;gap:3px;max-width:min(72%,520px);min-width:0}
+.m.me .col{align-items:flex-end}
+.nm{font-size:12px;color:var(--dim);margin-left:2px}
+.b{padding:9px 12px;border-radius:4px 16px 16px 16px;background:var(--other);white-space:pre-wrap;word-break:break-word;line-height:1.5}
+.m.me .b{background:var(--mine);color:var(--mineText);border-radius:16px 4px 16px 16px}
+.tm{font-size:11px;color:var(--dim);flex:none;padding-bottom:2px}
+.m.gap{margin-top:8px}
+.bar{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--panel)}
+.bar textarea{flex:1;resize:none;max-height:120px;min-height:42px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;line-height:1.4}
+.bar button{flex:none;padding:0 18px;border-radius:14px;border:0;background:var(--mine);color:var(--mineText);font-weight:700}
+.bar button:disabled{opacity:.45}
+.none{flex:1;display:flex;align-items:center;justify-content:center;color:var(--dim);text-align:center;padding:30px;line-height:1.8}
+.login{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:var(--h);text-align:center;padding:24px}
+.login button{padding:12px 28px;border-radius:99px;border:0;background:linear-gradient(90deg,#d9b45f,#b8923a);color:#1c1405;font-weight:700;font-size:16px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.modal .box{width:min(420px,100%);max-height:86dvh;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.modal h3{margin:0;padding:14px 16px;border-bottom:1px solid var(--line)}
+.modal input[type=text]{margin:12px 16px 4px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit}
+.modal .pick{flex:1;overflow-y:auto;min-height:60px}
+.modal label.row{cursor:pointer}
+.modal .act{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--line)}
+.modal .act button{padding:9px 18px;border-radius:10px;border:1px solid var(--line);background:none}
+.modal .act button.ok{background:var(--mine);color:var(--mineText);border-color:transparent;font-weight:700}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#000c;color:#fff;padding:9px 16px;border-radius:99px;font-size:14px;z-index:30}
+@media(max-width:760px){
+  .app{grid-template-columns:1fr;border:0}
+  .app .main{display:none}.app.open .side{display:none}.app.open .main{display:flex}
+  .ch .back{display:block}
+  .m .col{max-width:78%}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+(function(){
+var root=document.getElementById('root'), sb=null, me=null;
+var friends=[], rooms=[], names={}, cur=null, tab='chats', chan=null, msgs=[], seen={}, oldest=null;
+var $=function(s,e){return (e||document).querySelector(s);};
+function el(t,c,x){var e=document.createElement(t); if(c) e.className=c; if(x!=null) e.textContent=x; return e;}
+function nick(p){ return (p&&(p.display_name||p.username))||'알 수 없음'; }
+function initial(s){ return (s||'?').trim().charAt(0).toUpperCase(); }
+function pad(n){return n<10?'0'+n:''+n;}
+function hm(d){ d=new Date(d); var h=d.getHours(); return (h<12?'오전 ':'오후 ')+(h%12||12)+':'+pad(d.getMinutes()); }
+function dayKey(d){ d=new Date(d); return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate(); }
+function dayLabel(d){ d=new Date(d); var w='일월화수목금토'[d.getDay()]; return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 '+w+'요일'; }
+function shortTime(d){ var t=new Date(d), n=new Date(); if(dayKey(t)===dayKey(n)) return hm(t); var y=new Date(n-864e5); if(dayKey(t)===dayKey(y)) return '어제'; return (t.getMonth()+1)+'월 '+t.getDate()+'일'; }
+function toast(s){ var t=el('div','toast',s); document.body.appendChild(t); setTimeout(function(){t.remove();},2200); }
+
+async function boot(){
+  if(!window.FFAuth){ return setTimeout(boot,200); }
+  await FFAuth.ready; sb=FFAuth.client(); me=FFAuth.user();
+  FFAuth.onChange(function(){ var u=FFAuth.user(); if((u&&u.id)!==(me&&me.id)){ me=u; start(); } });
+  start();
+}
+function start(){
+  if(chan){ try{ sb.removeChannel(chan); }catch(e){} chan=null; }
+  root.innerHTML=''; friends=[]; rooms=[]; cur=null; msgs=[];
+  if(!me){
+    var l=el('div','login'); l.appendChild(el('div','',''));
+    var h=el('div','',''); h.innerHTML='<div style="font-family:Oswald,sans-serif;font-size:34px;font-weight:700">FRENCHFRIES<span style="color:var(--fry)">777</span> CHAT</div><p style="color:var(--dim);margin:6px 0 0">친구와 1:1이나 그룹으로 대화해요.<br>로그인하면 바로 시작할 수 있어요.</p>';
+    l.appendChild(h); var b=el('button','','로그인 / 회원가입'); b.onclick=function(){ FFAuth.openLogin('in'); }; l.appendChild(b);
+    var a=el('a','','← Frenchfries777'); a.href='https://frenchfries777.com/'; a.style.color='var(--dim)'; l.appendChild(a);
+    root.appendChild(l); return;
+  }
+  layout(); loadAll(); subscribe();
+}
+function layout(){
+  var app=el('div','app'); app.id='app';
+  app.innerHTML='<div class="side"><div class="top"><a class="home" href="https://frenchfries777.com/"><span class="fry">🍟</span><span>CHAT</span></a><span class="sp"></span><span data-ff-account data-ff-nohub></span></div>'+
+   '<div class="tabs"><button data-t="chats" class="on">채팅</button><button data-t="friends">친구</button></div>'+
+   '<div class="list" id="list"></div></div>'+
+   '<div class="main" id="main"></div>';
+  root.appendChild(app);
+  [].forEach.call(app.querySelectorAll('.tabs button'),function(b){ b.onclick=function(){ tab=b.getAttribute('data-t'); [].forEach.call(app.querySelectorAll('.tabs button'),function(x){x.classList.toggle('on',x===b);}); paintList(); }; });
+  paintMain();
+}
+async function loadAll(){
+  await loadFriends(); await loadRooms(); paintList();
+  var q=new URLSearchParams(location.search).get('room'); if(q) openRoom(q);
+}
+async function nameOf(ids){
+  var need=ids.filter(function(i){return !names[i];}); if(!need.length) return;
+  var r=await sb.from('profiles').select('id,username,display_name').in('id',need);
+  ((r&&r.data)||[]).forEach(function(p){ names[p.id]=nick(p); });
+}
+async function loadFriends(){
+  var r=await sb.from('friendships').select('requester_id,addressee_id,status').or('requester_id.eq.'+me.id+',addressee_id.eq.'+me.id);
+  var ids=[]; ((r&&r.data)||[]).forEach(function(x){ if(x.status!=='accepted') return; var o=x.requester_id===me.id?x.addressee_id:x.requester_id; if(ids.indexOf(o)<0) ids.push(o); });
+  await nameOf(ids);
+  friends=ids.map(function(i){return {id:i,name:names[i]||'알 수 없음'};}).sort(function(a,b){return a.name.localeCompare(b.name,'ko');});
+}
+async function loadRooms(){
+  var r=await sb.from('ffc_members').select('room_id,last_read_at,ffc_rooms(id,kind,name,last_at,last_text)').eq('user_id',me.id);
+  if(r.error){ rooms=[]; root.dataset.err=r.error.message; return; }
+  rooms=((r.data)||[]).filter(function(x){return x.ffc_rooms;}).map(function(x){ var o=x.ffc_rooms; return {id:o.id,kind:o.kind,name:o.name,last_at:o.last_at,last_text:o.last_text,read:x.last_read_at,unread:0,members:[]}; });
+  if(!rooms.length) return;
+  var ids=rooms.map(function(x){return x.id;});
+  var m=await sb.from('ffc_members').select('room_id,user_id').in('room_id',ids);
+  var uids=[]; ((m&&m.data)||[]).forEach(function(x){ var rm=rooms.find(function(y){return y.id===x.room_id;}); if(rm) rm.members.push(x.user_id); if(uids.indexOf(x.user_id)<0) uids.push(x.user_id); });
+  await nameOf(uids);
+  await Promise.all(rooms.map(async function(rm){
+    var c=await sb.from('ffc_msgs').select('id',{count:'exact',head:true}).eq('room_id',rm.id).neq('user_id',me.id).gt('created_at',rm.read);
+    rm.unread=(c&&c.count)||0;
+  }));
+  rooms.sort(function(a,b){return new Date(b.last_at)-new Date(a.last_at);});
+}
+function roomTitle(rm){
+  if(rm.kind==='group') return (rm.name||'그룹 채팅');
+  var o=rm.members.find(function(i){return i!==me.id;}); return (o&&names[o])||'알 수 없음';
+}
+function paintList(){
+  var list=$('#list'); if(!list) return; list.innerHTML='';
+  if(tab==='friends'){
+    if(!friends.length){ list.appendChild(el('div','empty','아직 친구가 없어요.\n계정 메뉴의 친구에서 친구를 추가해 보세요.')); return; }
+    friends.forEach(function(f){
+      var b=el('button','row'); b.innerHTML='<span class="av"></span><span class="rm"><b></b></span>'; $('.av',b).textContent=initial(f.name); $('b',b).textContent=f.name;
+      b.onclick=function(){ openDm(f.id); }; list.appendChild(b);
+    }); return;
+  }
+  var nb=el('button','new','＋ 그룹 채팅 만들기'); nb.onclick=groupModal; list.appendChild(nb);
+  if(!rooms.length){ list.appendChild(el('div','empty','대화가 없어요.\n친구 탭에서 친구를 눌러 시작해 보세요.')); return; }
+  rooms.forEach(function(rm){
+    var t=roomTitle(rm), b=el('button','row'+(cur&&cur.id===rm.id?' on':''));
+    b.innerHTML='<span class="av"></span><span class="rm"><b></b><span></span></span><span class="meta"><span class="tt"></span></span>';
+    var av=$('.av',b); av.textContent=rm.kind==='group'?'👥':initial(t); if(rm.kind==='group') av.classList.add('g');
+    $('b',b).textContent=t; $('.rm>span',b).textContent=rm.last_text||'대화를 시작해 보세요';
+    $('.tt',b).textContent=rm.last_text?shortTime(rm.last_at):'';
+    if(rm.unread){ var u=el('span','bd',rm.unread>99?'99+':rm.unread); $('.meta',b).appendChild(u); }
+    b.onclick=function(){ openRoom(rm.id); }; list.appendChild(b);
+  });
+}
+async function openDm(fid){
+  var r=await sb.rpc('ffc_open_dm',{friend:fid}); if(r.error){ toast('대화방을 열 수 없어요'); return; }
+  await loadRooms(); tab='chats'; [].forEach.call(document.querySelectorAll('.tabs button'),function(x){x.classList.toggle('on',x.getAttribute('data-t')==='chats');});
+  openRoom(r.data);
+}
+async function openRoom(id){
+  var rm=rooms.find(function(x){return x.id===id;});
+  if(!rm){ await loadRooms(); rm=rooms.find(function(x){return x.id===id;}); }
+  if(!rm){ toast('대화방을 찾을 수 없어요'); return; }
+  cur=rm; msgs=[]; seen={}; oldest=null;
+  $('#app').classList.add('open'); paintMain(); paintList();
+  var r=await sb.from('ffc_msgs').select('id,user_id,body,created_at').eq('room_id',id).order('id',{ascending:false}).limit(60);
+  var rows=((r&&r.data)||[]).reverse(); await nameOf(rows.map(function(x){return x.user_id;}));
+  rows.forEach(function(x){ seen[x.id]=1; msgs.push(x); }); oldest=rows.length?rows[0].id:null;
+  paintMsgs(true); markRead();
+}
+function paintMain(){
+  var main=$('#main'); main.innerHTML='';
+  if(!cur){ main.appendChild(el('div','none','대화를 고르거나\n친구와 새 대화를 시작해 보세요.')); return; }
+  var ch=el('div','ch'); var back=el('button','back','‹'); back.onclick=function(){ cur=null; $('#app').classList.remove('open'); paintMain(); paintList(); };
+  var t=el('div','t'); t.appendChild(el('b','',roomTitle(cur))); t.appendChild(el('span','',cur.kind==='group'?'멤버 '+cur.members.length+'명':'1:1 대화'));
+  var more=el('button','more','나가기'); var armed=false;
+  more.onclick=async function(){ if(!armed){ armed=true; more.textContent='한 번 더 누르면 나가요'; setTimeout(function(){ armed=false; more.textContent='나가기'; },3000); return; }
+    await sb.rpc('ffc_leave',{rid:cur.id}); cur=null; await loadRooms(); $('#app').classList.remove('open'); paintMain(); paintList(); };
+  ch.appendChild(back); ch.appendChild(t); ch.appendChild(more); main.appendChild(ch);
+  var box=el('div','msgs'); box.id='msgs'; main.appendChild(box);
+  var bar=el('div','bar'); var ta=el('textarea'); ta.rows=1; ta.maxLength=2000; ta.placeholder='메시지를 입력하세요'; var send=el('button','','전송'); send.disabled=true;
+  ta.oninput=function(){ send.disabled=!ta.value.trim(); ta.style.height='auto'; ta.style.height=Math.min(ta.scrollHeight,120)+'px'; };
+  ta.onkeydown=function(e){ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); go(); } };
+  async function go(){ var v=ta.value.trim(); if(!v||!cur) return; ta.value=''; send.disabled=true; ta.style.height='auto';
+    var r=await sb.from('ffc_msgs').insert({room_id:cur.id,user_id:me.id,body:v}).select('id,user_id,body,created_at').single();
+    if(r.error){ toast('보내지 못했어요'); ta.value=v; send.disabled=false; return; } add(r.data); }
+  send.onclick=go; bar.appendChild(ta); bar.appendChild(send); main.appendChild(bar);
+}
+function paintMsgs(bottom){
+  var box=$('#msgs'); if(!box) return; var keep=box.scrollHeight-box.scrollTop; box.innerHTML='';
+  if(oldest!==null&&msgs.length>=60){ var ob=el('button','older','이전 대화 보기'); ob.onclick=older; box.appendChild(ob); }
+  var lastDay='', lastU=null, lastT=0;
+  msgs.forEach(function(m,i){
+    var dk=dayKey(m.created_at); if(dk!==lastDay){ box.appendChild(el('div','day',dayLabel(m.created_at))); lastDay=dk; lastU=null; }
+    var mine=m.user_id===me.id, first=lastU!==m.user_id, nx=msgs[i+1], last=!(nx&&nx.user_id===m.user_id&&dayKey(nx.created_at)===dk&&hm(nx.created_at)===hm(m.created_at));
+    var row=el('div','m'+(mine?' me':'')+(first?' gap':''));
+    if(!mine){ var av=el('div','av',first?initial(names[m.user_id]):''); if(!first) av.style.visibility='hidden'; row.appendChild(av); }
+    var col=el('div','col'); if(!mine&&first&&cur.kind==='group') col.appendChild(el('div','nm',names[m.user_id]||'알 수 없음'));
+    col.appendChild(el('div','b',m.body)); row.appendChild(col);
+    if(last) row.appendChild(el('span','tm',hm(m.created_at)));
+    box.appendChild(row); lastU=m.user_id;
+  });
+  if(bottom) box.scrollTop=box.scrollHeight; else box.scrollTop=box.scrollHeight-keep;
+}
+async function older(){
+  var r=await sb.from('ffc_msgs').select('id,user_id,body,created_at').eq('room_id',cur.id).lt('id',oldest).order('id',{ascending:false}).limit(60);
+  var rows=((r&&r.data)||[]).reverse(); await nameOf(rows.map(function(x){return x.user_id;}));
+  rows.forEach(function(x){ seen[x.id]=1; }); msgs=rows.concat(msgs); oldest=rows.length?rows[0].id:null; if(rows.length<60) oldest=null; paintMsgs(false);
+}
+function add(m){
+  if(seen[m.id]) return; seen[m.id]=1; msgs.push(m);
+  var box=$('#msgs'), near=box&&box.scrollHeight-box.scrollTop-box.clientHeight<140;
+  paintMsgs(near||m.user_id===me.id);
+  var rm=cur; if(rm){ rm.last_text=m.body.slice(0,80); rm.last_at=m.created_at; rm.unread=0; rooms.sort(function(a,b){return new Date(b.last_at)-new Date(a.last_at);}); paintList(); markRead(); }
+}
+async function markRead(){ if(!cur) return; var now=new Date().toISOString(); cur.read=now; cur.unread=0; await sb.from('ffc_members').update({last_read_at:now}).eq('room_id',cur.id).eq('user_id',me.id); paintList(); }
+function subscribe(){
+  chan=sb.channel('ffc-'+me.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'ffc_msgs'},async function(p){
+    var m=p.new; if(!m) return;
+    if(cur&&m.room_id===cur.id){ await nameOf([m.user_id]); add(m); return; }
+    var rm=rooms.find(function(x){return x.id===m.room_id;});
+    if(!rm){ await loadRooms(); paintList(); return; }
+    rm.last_text=m.body.slice(0,80); rm.last_at=m.created_at; if(m.user_id!==me.id) rm.unread++;
+    rooms.sort(function(a,b){return new Date(b.last_at)-new Date(a.last_at);}); paintList();
+  }).on('postgres_changes',{event:'INSERT',schema:'public',table:'ffc_members',filter:'user_id=eq.'+me.id},async function(){ await loadRooms(); paintList(); }).subscribe();
+}
+function groupModal(){
+  if(!friends.length){ toast('먼저 친구를 추가해 주세요'); return; }
+  var md=el('div','modal'), box=el('div','box'); box.appendChild(el('h3','','그룹 채팅 만들기'));
+  var nm=el('input'); nm.type='text'; nm.placeholder='방 이름 (선택)'; nm.maxLength=30; box.appendChild(nm);
+  var pick=el('div','pick'); friends.forEach(function(f){ var l=el('label','row'); l.innerHTML='<input type="checkbox"><span class="av"></span><span class="rm"><b></b></span>'; $('input',l).value=f.id; $('.av',l).textContent=initial(f.name); $('b',l).textContent=f.name; pick.appendChild(l); }); box.appendChild(pick);
+  var act=el('div','act'); var no=el('button','','취소'), ok=el('button','ok','만들기'); no.onclick=function(){ md.remove(); };
+  ok.onclick=async function(){ var ids=[].map.call(pick.querySelectorAll('input:checked'),function(i){return i.value;}); if(!ids.length){ toast('친구를 한 명 이상 골라 주세요'); return; }
+    var r=await sb.rpc('ffc_create_group',{gname:nm.value,members:ids}); if(r.error){ toast('만들지 못했어요'); return; } md.remove(); await loadRooms(); openRoom(r.data); };
+  act.appendChild(no); act.appendChild(ok); box.appendChild(act); md.appendChild(box); md.onclick=function(e){ if(e.target===md) md.remove(); }; document.body.appendChild(md);
+}
+boot();
+})();
+</script>
+</body>
+</html>
