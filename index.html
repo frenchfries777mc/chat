@@ -15,7 +15,7 @@ html[data-ff-theme=light]{--bg:#f4f1ea;--panel:#fff;--line:rgba(160,120,30,.4);-
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',system-ui,sans-serif}
 button{font:inherit;color:inherit;cursor:pointer}
-.app{display:grid;grid-template-columns:340px 1fr;height:var(--h);max-width:1200px;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.app{display:grid;grid-template-columns:360px 1fr;height:var(--h);max-width:1200px;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)}
 .side{position:relative;z-index:6;display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--line);background:var(--panel)}
 .top{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
 .top a.home{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-family:Oswald,sans-serif;font-weight:700;letter-spacing:.02em}
@@ -24,6 +24,15 @@ button{font:inherit;color:inherit;cursor:pointer}
 .top .me{color:var(--dim);font-size:12px}
 .acct{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(217,180,95,.07),transparent);position:relative;z-index:5}
 .acct>*{max-width:100%}
+.acct [data-ff-account]{display:flex!important;flex-wrap:wrap!important;white-space:normal!important;max-width:100%!important;gap:6px}
+.acct [data-ff-account] .ffa-wrap{margin-left:0!important;flex-wrap:wrap!important;white-space:normal!important;gap:6px;max-width:100%}
+.acct [data-ff-account] .ffa-hub{margin-left:0!important}
+.side{min-width:0}
+.ch{position:relative}
+.menu{position:absolute;right:12px;top:calc(100% + 4px);z-index:15;min-width:170px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.menu button{display:block;width:100%;text-align:left;padding:9px 12px;border:0;border-radius:8px;background:none;font-size:14px}
+.menu button:hover{background:rgba(217,180,95,.1)}
+.menu button.del{color:#e5484d}
 .tabs{display:flex;border-bottom:1px solid var(--line)}
 .tabs button{flex:1;padding:11px 0;background:none;border:0;border-bottom:2px solid transparent;color:var(--dim);font-weight:700}
 .tabs button.on{color:var(--fry);border-bottom-color:var(--fry)}
@@ -45,7 +54,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .ch .t{flex:1;min-width:0}
 .ch .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ch .t span{color:var(--dim);font-size:12px}
-.ch .more{background:none;border:1px solid var(--line);border-radius:10px;padding:6px 10px;color:var(--dim);font-size:13px}
+.ch .more{background:none;border:1px solid var(--line);border-radius:10px;padding:4px 12px;color:var(--dim);font-size:18px;line-height:1.2}
 .msgs{flex:1;overflow-y:auto;min-height:0;padding:14px 18px 8px;display:flex;flex-direction:column;gap:4px;background:radial-gradient(circle at 1px 1px,rgba(217,180,95,.09) 1px,transparent 0) 0 0/22px 22px,radial-gradient(ellipse at 50% 0,rgba(217,180,95,.08),transparent 60%)}
 .intro{align-self:center;display:flex;flex-direction:column;align-items:center;gap:8px;margin:18px 0 10px;padding:22px 28px;border:1px solid var(--line);border-radius:18px;background:var(--panel);text-align:center;max-width:340px}
 .intro .av{width:64px;height:64px;font-size:26px;border-radius:22px}
@@ -218,8 +227,14 @@ function paintMain(){
   if(!cur){ var hr=el('div','hero'); hr.innerHTML='<div class="logo">🍟</div><h2>FRENCHFRIES777 CHAT</h2><p>왼쪽에서 대화를 고르거나<br>친구를 눌러 새 대화를 시작해 보세요.</p><div class="tips"><span>1:1 대화</span><span>그룹 채팅</span><span>실시간</span></div>'; main.appendChild(hr); return; }
   var ch=el('div','ch'); var back=el('button','back','‹'); back.onclick=function(){ cur=null; $('#app').classList.remove('open'); paintMain(); paintList(); };
   var t=el('div','t'); t.appendChild(el('b','',roomTitle(cur))); t.appendChild(el('span','',cur.kind==='group'?'멤버 '+cur.members.length+'명':'1:1 대화'));
-  var more=el('button','more','나가기');
-  more.onclick=function(){ cur=null; $('#app').classList.remove('open'); paintMain(); paintList(); };
+  var more=el('button','more','⋯'); more.title='메뉴';
+  more.onclick=function(e){ e.stopPropagation(); var old=$('.menu',ch); if(old){ old.remove(); return; }
+    var mn=el('div','menu'); var cl=el('button','','대화 닫기'); cl.onclick=function(){ cur=null; $('#app').classList.remove('open'); paintMain(); paintList(); };
+    var del=el('button','del','대화방 삭제'); var armed=false;
+    del.onclick=async function(ev){ ev.stopPropagation(); if(!armed){ armed=true; del.textContent='한 번 더 누르면 삭제돼요'; return; }
+      var rid=cur.id; await sb.rpc('ffc_leave',{rid:rid}); cur=null; await loadRooms(); $('#app').classList.remove('open'); paintMain(); paintList(); toast('대화방을 삭제했어요'); };
+    mn.appendChild(cl); mn.appendChild(del); ch.appendChild(mn);
+    setTimeout(function(){ document.addEventListener('click',function h(ev){ if(!mn.contains(ev.target)){ mn.remove(); document.removeEventListener('click',h); } }); },0); };
   var hav=el('div','av'+(cur.kind==='group'?' g':''),cur.kind==='group'?'👥':initial(roomTitle(cur))); ch.appendChild(back); ch.appendChild(hav); ch.appendChild(t); ch.appendChild(more); main.appendChild(ch);
   var box=el('div','msgs'); box.id='msgs'; main.appendChild(box);
   var bar=el('div','bar'); var ta=el('textarea'); ta.rows=1; ta.maxLength=2000; ta.placeholder='메시지를 입력하세요'; var send=el('button','','전송'); send.disabled=true;
