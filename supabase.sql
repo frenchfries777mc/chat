@@ -50,6 +50,11 @@ create or replace function public.ffc_msg_after() returns trigger
 language plpgsql security definer set search_path=public as
 $$ begin
   update public.ffc_rooms set last_at=new.created_at, last_text=left(new.body,80) where id=new.room_id;
+  -- 🔔 알림: 같은 사람에게서 안 읽은 채팅 알림이 이미 있으면 하나만
+  insert into public.ff_notes(user_id,kind,actor_id,ref)
+    select m.user_id,'chat',new.user_id,new.id from public.ffc_members m
+    where m.room_id=new.room_id and m.user_id<>new.user_id
+      and not exists(select 1 from public.ff_notes n where n.user_id=m.user_id and n.kind='chat' and n.actor_id=new.user_id and not n.read);
   return new;
 end $$;
 drop trigger if exists ffc_msg_after on public.ffc_msgs;
@@ -99,3 +104,7 @@ grant execute on function public.ffc_open_dm(uuid), public.ffc_create_group(text
 
 alter publication supabase_realtime add table public.ffc_msgs;
 alter publication supabase_realtime add table public.ffc_members;
+
+-- 🔔 알림 종류에 chat 추가
+alter table public.ff_notes drop constraint if exists ff_notes_kind_check;
+alter table public.ff_notes add constraint ff_notes_kind_check check (kind = any (array['comment','like','friend','dm','feedback','report','mention','mentionc','coin','invite','friendpost','chat']));
