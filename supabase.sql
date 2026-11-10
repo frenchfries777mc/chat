@@ -1,4 +1,4 @@
--- Frenchfries777 Chat (카카오톡 같은 메신저): 1:1 + 그룹 대화방, 안 읽은 수, 실시간
+-- Frenchfries777 Chat: 1:1 + 그룹 대화방, 안 읽은 수, 실시간
 create table if not exists public.ffc_rooms(
   id uuid primary key default gen_random_uuid(),
   kind text not null check (kind in ('dm','group')),
@@ -70,8 +70,8 @@ $$ declare me uuid:=auth.uid(); k text; rid uuid; begin
   select id into rid from public.ffc_rooms where dm_key=k;
   if rid is null then
     insert into public.ffc_rooms(kind,dm_key,created_by) values('dm',k,me) returning id into rid;
-    insert into public.ffc_members(room_id,user_id) values(rid,me),(rid,friend);
   end if;
+  insert into public.ffc_members(room_id,user_id) values(rid,me),(rid,friend) on conflict do nothing;
   return rid;
 end $$;
 
