@@ -153,7 +153,10 @@ function layout(){
 }
 async function loadAll(){
   await loadFriends(); await loadRooms(); paintList();
-  var q=new URLSearchParams(location.search).get('room'); if(q) openRoom(q);
+  var sp=new URLSearchParams(location.search), q=sp.get('room'), mg=sp.get('msg');
+  if(!q&&mg&&/^\d+$/.test(mg)){ var r=await sb.from('ffc_msgs').select('room_id').eq('id',+mg).maybeSingle(); q=r&&r.data&&r.data.room_id; }
+  if(q) openRoom(q);
+  if(sp.has('msg')||sp.has('room')) try{ history.replaceState(null,'',location.pathname); }catch(e){}
 }
 async function nameOf(ids){
   var need=ids.filter(function(i){return !names[i];}); if(!need.length) return;
