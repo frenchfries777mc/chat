@@ -414,7 +414,7 @@ function subscribe(){
     rm.last_text=m.body.slice(0,80); rm.last_at=m.created_at; if(m.user_id!==me.id) rm.unread++;
     rooms.sort(function(a,b){return new Date(b.last_at)-new Date(a.last_at);}); paintList();
   }).on('postgres_changes',{event:'INSERT',schema:'public',table:'ffc_members',filter:'user_id=eq.'+me.id},async function(){ await loadRooms(); paintList(); });
-  chan=subscribeExt(chan).subscribe();
+  chan=subscribeExt(chan).subscribe(function(st){ var was=live; live=st==='SUBSCRIBED'; if(live&&!was&&everLive) syncNow(true); if(live) everLive=true; });
 }
 function groupModal(){
   if(!friends.length){ toast('먼저 친구를 추가해 주세요'); return; }
@@ -791,6 +791,31 @@ function subscribeExt(ch){
   return ch.on('postgres_changes',{event:'*',schema:'public',table:'ffc_bets'},function(p){ var d=p.new; if(d&&d.id){ bets[d.id]=d; nameOf([d.a,d.b]).then(function(){ if(cur&&d.room_id===cur.id) paintMsgs(false); }); } })
            .on('postgres_changes',{event:'*',schema:'public',table:'ffc_brackets'},function(p){ var d=p.new; if(d&&d.id){ brackets[d.id]=d; if(cur&&d.room_id===cur.id) paintMsgs(false); } });
 }
+
+/* ===== 실시간 보강: 연결이 끊기거나 탭이 잠들었다 돌아와도 놓친 메시지를 바로 채워요 ===== */
+var live=false, everLive=false, syncBusy=false, roomsAt=0;
+async function syncNow(full){
+  if(!me||!sb||syncBusy) return; syncBusy=true;
+  try{
+    if(cur){
+      var rid=cur.id, last=0; msgs.forEach(function(x){ if(x.id>last) last=x.id; });
+      if(last){
+        var r=await sb.from('ffc_msgs').select(COLS).eq('room_id',rid).gt('id',last).order('id').limit(100);
+        var rows=(r&&r.data)||[];
+        if(rows.length&&cur&&cur.id===rid){ await nameOf(rows.map(function(x){return x.user_id;})); await loadReacts(rows.map(function(x){return x.id;})); rows.forEach(add); }
+      }
+    }
+    if(full||Date.now()-roomsAt>30000){
+      roomsAt=Date.now(); var id=cur&&cur.id; await loadRooms();
+      if(id){ var rm=rooms.find(function(x){return x.id===id;}); if(rm){ rm.unread=0; cur.members=rm.members; cur.created_by=rm.created_by; cur.notice=rm.notice; if(typeof paintHead==='function') paintHead(); } }
+      paintList();
+    }
+  }catch(e){} finally{ syncBusy=false; }
+}
+var tick=0; setInterval(function(){ tick++; if(document.visibilityState!=='hidden'&&(!live||tick%3===0)) syncNow(false); }, 4000);
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') syncNow(true); });
+window.addEventListener('online',function(){ syncNow(true); });
+window.addEventListener('focus',function(){ syncNow(false); });
 
 boot();
 })();
