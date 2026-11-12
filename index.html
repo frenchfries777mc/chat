@@ -6,6 +6,12 @@
 <title>Frenchfries777 Chat</title>
 <meta name="description" content="친구와 1:1 또는 그룹으로 대화해요. Frenchfries777 계정 하나로 바로 쓸 수 있어요.">
 <link rel="icon" href="https://frenchfries777.com/favicon.svg">
+<link rel="manifest" href="/chat/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0e0e0e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="FF Chat">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://frenchfries777.com/games/ff-lang.js?v=20261109c"></script>
 <script src="https://frenchfries777.com/games/ff-auth.js"></script>
@@ -21,6 +27,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .top a.home{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-family:Oswald,sans-serif;font-weight:700;letter-spacing:.02em}
 .top .fry{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#ffc93c,#ff8a3d);display:flex;align-items:center;justify-content:center;font-size:17px}
 .top .sp{flex:1}
+.top .inst{border:1px solid var(--fry);background:transparent;color:var(--fry);border-radius:99px;padding:5px 12px;font-size:12.5px;font-weight:700}
 .top .me{color:var(--dim);font-size:12px}
 .acct{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(217,180,95,.07),transparent);position:relative;z-index:5}
 .acct>*{max-width:100%}
@@ -240,7 +247,7 @@ function start(){
 }
 function layout(){
   var app=el('div','app'); app.id='app';
-  app.innerHTML='<div class="side"><div class="top"><a class="home" href="https://frenchfries777.com/"><span class="fry">🍟</span><span>CHAT</span></a><span class="sp"></span></div><div class="acct"><span data-ff-account data-ff-nohub></span></div>'+
+  app.innerHTML='<div class="side"><div class="top"><a class="home" href="https://frenchfries777.com/"><span class="fry">🍟</span><span>CHAT</span></a><span class="sp"></span><button type="button" class="inst" id="instBtn" hidden>⬇ 앱 설치</button></div><div class="acct"><span data-ff-account data-ff-nohub></span></div>'+
    '<div class="tabs"><button data-t="chats" class="on">채팅</button><button data-t="friends">친구</button></div>'+
    '<div class="list" id="list"></div></div>'+
    '<div class="main" id="main"></div>';
@@ -499,7 +506,7 @@ function renderBody(m){
 async function resultModal(){
   if(!V2){ toast('아직 준비 중이에요'); return; }
   var pl=await sb.from('ff_played').select('game,plays,last_at,ach_done,ach_total').eq('user_id',me.id).order('last_at',{ascending:false});
-  var rows=(pl&&pl.data)||[]; if(!rows.length){ toast('아직 기록된 게임이 없어요'); return; }
+  var rows=((pl&&pl.data)||[]).filter(function(r){ return GAMES[r.game]||r.game==='hub'; }); if(!rows.length){ toast('아직 기록된 게임이 없어요'); return; }
   var md=el('div','modal'), box=el('div','box'); box.appendChild(el('h3','','🎮 전적 공유'));
   var pick=el('div','pick'); rows.forEach(function(r){ var b=el('button','row'); b.innerHTML='<span class="av">🎮</span><span class="rm"><b></b><span></span></span>'; $('b',b).textContent=gname(r.game); $('.rm>span',b).textContent=r.plays+'판 · 업적 '+(r.ach_done||0)+'/'+(r.ach_total||0);
     b.onclick=async function(){ md.remove(); await shareResult(r); }; pick.appendChild(b); });
@@ -816,6 +823,18 @@ var tick=0; setInterval(function(){ tick++; if(document.visibilityState!=='hidde
 document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') syncNow(true); });
 window.addEventListener('online',function(){ syncNow(true); });
 window.addEventListener('focus',function(){ syncNow(false); });
+
+/* ===== 앱 설치: 이 채팅만 따로 설치돼요 (설치한 앱도 사이트를 그대로 열어서 업데이트가 같이 따라와요) ===== */
+var instEv=null;
+function instStandalone(){ try{ return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true; }catch(e){ return false; } }
+function instIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); }
+function instPaint(){ var b=document.getElementById('instBtn'); if(!b) return; b.hidden=instStandalone()||!(instEv||instIOS()); if(!b.__w){ b.__w=1; b.onclick=function(){
+  var e=instEv; if(e){ instEv=null; e.prompt(); e.userChoice.then(function(){ instPaint(); },function(){}); return; }
+  toast(instIOS()?'공유 버튼 → 홈 화면에 추가를 눌러 주세요':'브라우저 메뉴에서 앱 설치를 눌러 주세요'); }; } }
+window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); instEv=e; instPaint(); });
+window.addEventListener('appinstalled',function(){ instEv=null; instPaint(); });
+try{ if('serviceWorker' in navigator && location.hostname.replace(/^www\./,'')==='frenchfries777.com') navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(){}); }catch(e){}
+setInterval(instPaint,1500);
 
 boot();
 })();
