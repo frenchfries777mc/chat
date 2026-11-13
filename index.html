@@ -6,15 +6,19 @@
 <title>Frenchfries777 Chat</title>
 <meta name="description" content="친구와 1:1 또는 그룹으로 대화해요. Frenchfries777 계정 하나로 바로 쓸 수 있어요.">
 <link rel="icon" href="https://frenchfries777.com/favicon.svg">
-<link rel="manifest" href="/chat/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="https://frenchfries777.com/apple-touch-icon.png">
 <meta name="theme-color" content="#0e0e0e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="FF Chat">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+(function(){ var SUB='https://chat.frenchfries777.com/'; if(!/^(www\.)?frenchfries777\.com$/.test(location.hostname)||/[?&]nosub=1/.test(location.search)) return;
+  try{ fetch(SUB+'manifest.webmanifest',{cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).then(function(j){ if(j&&j.short_name==='FF Chat') location.replace(SUB+location.search.replace(/^\?/,'?')+location.hash); }).catch(function(){}); }catch(e){} })();
+</script>
 <script src="https://frenchfries777.com/games/ff-lang.js?v=20261109c"></script>
-<script src="https://frenchfries777.com/games/ff-auth.js"></script>
+<script src="https://frenchfries777.com/games/ff-auth.js?v=20261113a"></script>
 <style>
 :root{--bg:#0e0e0e;--panel:#151515;--line:rgba(217,180,95,.35);--fry:#d9b45f;--text:#ece6d8;--dim:#9a937f;--mine:#d9b45f;--mineText:#1c1405;--other:#232323;--h:100dvh}
 html[data-ff-theme=light]{--bg:#f4f1ea;--panel:#fff;--line:rgba(160,120,30,.4);--fry:#b8923a;--text:#22201a;--dim:#7a7463;--mine:#c8a02a;--mineText:#1c1405;--other:#ebe7dc}
@@ -833,7 +837,7 @@ function instPaint(){ var b=document.getElementById('instBtn'); if(!b) return; b
   toast(instIOS()?'공유 버튼 → 홈 화면에 추가를 눌러 주세요':'브라우저 메뉴에서 앱 설치를 눌러 주세요'); }; } }
 window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); instEv=e; instPaint(); });
 window.addEventListener('appinstalled',function(){ instEv=null; instPaint(); });
-try{ if('serviceWorker' in navigator && location.hostname.replace(/^www\./,'')==='frenchfries777.com') navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(){}); }catch(e){}
+try{ if('serviceWorker' in navigator && /(^|\.)frenchfries777\.com$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(function(){}); }catch(e){}
 setInterval(instPaint,1500);
 
 boot();
