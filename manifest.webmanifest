@@ -3,14 +3,13 @@
   "short_name": "FF Chat",
   "description": "친구와 1:1 또는 그룹으로 대화해요",
   "lang": "ko",
-  "id": "/chat/",
-  "start_url": "/chat/",
-  "scope": "/chat/",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#0e0e0e",
   "theme_color": "#0e0e0e",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    { "src": "https://frenchfries777.com/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "https://frenchfries777.com/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
   ]
 }
