@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /*?room=
+Disallow: /*?msg=
+
+Sitemap: https://chat.frenchfries777.com/sitemap.xml
