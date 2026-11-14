@@ -839,6 +839,21 @@ function instPaint(){ var b=document.getElementById('instBtn'); if(!b) return; b
   var e=instEv; if(e){ instEv=null; e.prompt(); e.userChoice.then(function(){ instPaint(); },function(){}); return; }
   toast(instIOS()?'공유 버튼 → 홈 화면에 추가를 눌러 주세요':'브라우저 메뉴에서 앱 설치를 눌러 주세요'); }; } }
 window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); instEv=e; instPaint(); });
+/* 앱 스토어의 "설치"로 들어왔을 때(?ffinstall=1)만 화면 아래에 설치 줄을 보여요 */
+(function(){ if(!/[?&]ffinstall=1(&|$)/.test(location.search)||instStandalone()) return;
+  try{ history.replaceState(null,'',location.pathname+location.search.replace(/([?&])ffinstall=1(&|$)/,function(m,a,b){ return b?a:''; })+location.hash); }catch(e){}
+  function bar(){ if(document.getElementById('ffInstBar')) return;
+    var d=document.createElement('div'); d.id='ffInstBar'; d.style.cssText='position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:2147483000;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 24px);padding:8px 10px 8px 14px;border-radius:999px;background:#171717;color:#ece6d8;border:1px solid #d9b45f;font:500 14px/1.3 system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.45)';
+    var t=document.createElement('span'), b=document.createElement('button'), x=document.createElement('button');
+    b.type=x.type='button'; b.textContent='⬇ 설치'; x.textContent='✕'; x.setAttribute('aria-label','close');
+    b.style.cssText='border:0;border-radius:999px;padding:7px 16px;background:#d9b45f;color:#111;font:700 14px system-ui,sans-serif;cursor:pointer'; x.style.cssText='border:0;background:none;color:#a39c8c;font-size:16px;cursor:pointer;padding:4px 6px';
+    b.onclick=function(){ var e=instEv; if(e){ instEv=null; e.prompt(); e.userChoice.then(function(c){ if(c&&c.outcome==='accepted') d.remove(); },function(){}); return; }
+      t.textContent=instIOS()?'공유 버튼 → 홈 화면에 추가':'브라우저 메뉴(⋮) → 앱 설치'; };
+    x.onclick=function(){ d.remove(); };
+    d.appendChild(t); d.appendChild(b); d.appendChild(x); document.body.appendChild(d); }
+  if(document.body) bar(); else document.addEventListener('DOMContentLoaded',bar);
+  window.addEventListener('appinstalled',function(){ var d=document.getElementById('ffInstBar'); if(d) d.remove(); });
+})();
 window.addEventListener('appinstalled',function(){ instEv=null; instPaint(); });
 try{ if('serviceWorker' in navigator && /(^|\.)frenchfries777\.com$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(function(){}); }catch(e){}
 setInterval(instPaint,1500);
