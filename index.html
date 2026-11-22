@@ -288,9 +288,9 @@ async function loadFriends(){
   friends=ids.map(function(i){return {id:i,name:names[i]||'알 수 없음'};}).sort(function(a,b){return a.name.localeCompare(b.name,'ko');});
 }
 async function loadRooms(){
-  var r=await sb.from('ffc_members').select('room_id,last_read_at,'+(V3?'ffc_rooms(id,kind,name,last_at,last_text,created_by,notice)':'ffc_rooms(id,kind,name,last_at,last_text,created_by)')+'').eq('user_id',me.id);
+  var r=await sb.from('ffc_members').select('room_id,last_read_at,'+(V3?'ffc_rooms(id,kind,name,last_at,last_text,created_by,notice,bg)':'ffc_rooms(id,kind,name,last_at,last_text,created_by)')+'').eq('user_id',me.id);
   if(r.error){ rooms=[]; root.dataset.err=r.error.message; return; }
-  rooms=((r.data)||[]).filter(function(x){return x.ffc_rooms;}).map(function(x){ var o=x.ffc_rooms; return {id:o.id,kind:o.kind,name:o.name,created_by:o.created_by,notice:o.notice||null,last_at:o.last_at,last_text:o.last_text,read:x.last_read_at,unread:0,members:[]}; });
+  rooms=((r.data)||[]).filter(function(x){return x.ffc_rooms;}).map(function(x){ var o=x.ffc_rooms; return {id:o.id,kind:o.kind,name:o.name,created_by:o.created_by,notice:o.notice||null,bg:o.bg||null,last_at:o.last_at,last_text:o.last_text,read:x.last_read_at,unread:0,members:[]}; });
   if(!rooms.length) return;
   var ids=rooms.map(function(x){return x.id;});
   var m=await sb.from('ffc_members').select('room_id,user_id').in('room_id',ids);
@@ -361,10 +361,11 @@ function paintMain(){
     var mb=el('button','',cur.kind==='group'?'👥 멤버 · 초대':'👥 대화 상대 · 초대'); mb.onclick=function(){ mn.remove(); membersModal(); };
     var nb2=el('button','','📌 공지 '+(cur.notice?'바꾸기':'올리기')); nb2.onclick=function(){ mn.remove(); noticeModal(); };
     var sb2=el('button','','⏰ 예약 메시지'); sb2.onclick=function(){ mn.remove(); schedModal(''); };
-    mn.appendChild(mb); if(V3){ mn.appendChild(nb2); mn.appendChild(sb2); } mn.appendChild(cl); mn.appendChild(del); ch.appendChild(mn);
+    var bb=el('button','','🖼 방 배경'); bb.onclick=function(){ mn.remove(); bgModal(); };
+    mn.appendChild(mb); if(V3){ if(canManage(cur)){ mn.appendChild(nb2); mn.appendChild(bb); } mn.appendChild(sb2); } mn.appendChild(cl); mn.appendChild(del); ch.appendChild(mn);
     setTimeout(function(){ document.addEventListener('click',function h(ev){ if(!mn.contains(ev.target)){ mn.remove(); document.removeEventListener('click',h); } }); },0); };
   var hav=roomAv(cur); t.style.cursor='pointer'; t.onclick=membersModal; ch.appendChild(back); ch.appendChild(hav); ch.appendChild(t); ch.appendChild(more); main.appendChild(ch);
-  var box=el('div','msgs'); box.id='msgs'; main.appendChild(box); setTimeout(paintNotice,0);
+  var box=el('div','msgs'); box.id='msgs'; main.appendChild(box); paintBg(); setTimeout(paintNotice,0);
   var bar=el('div','bar'); var ta=el('textarea'); ta.rows=1; ta.maxLength=2000; ta.placeholder='메시지를 입력하세요'; var send=el('button','','전송'); send.disabled=true;
   ta.oninput=function(){ send.disabled=!(ta.value.trim()||pend.length); ta.style.height='auto'; ta.style.height=Math.min(ta.scrollHeight,120)+'px'; };
   ta.onpaste=function(e){ var fs=[].filter.call((e.clipboardData&&e.clipboardData.files)||[],function(f){ return /^image\//.test(f.type); }); if(fs.length){ e.preventDefault(); addPend(fs); } };
@@ -800,6 +801,18 @@ function quoteBox(q){ var d=el('div','qt'); d.appendChild(el('b','',(names[q.u]|
 function paintNotice(){ var main=$('#main'); if(!main||!cur) return; var o=$('.notice',main); if(o) o.remove(); if(!cur.notice) return;
   var n=el('div','notice'); n.appendChild(el('span','pin','📌')); var t=el('span','nt',cur.notice); n.appendChild(t); n.onclick=function(){ n.classList.toggle('open'); };
   var ch=$('.ch',main); if(ch) ch.after(n); }
+/* 방 배경: 방장이 고르면 모두에게 보여요 */
+var BGS={none:['없음',''],night:['밤하늘','linear-gradient(180deg,#0b1026,#1b1f45)'],sea:['노을 바다','linear-gradient(180deg,#2a1b3d,#7a3b4f 55%,#e08a4c)'],forest:['숲','linear-gradient(180deg,#0f2417,#1f4a2c)'],wine:['와인','linear-gradient(180deg,#26090f,#4a1426)'],ocean:['깊은 바다','linear-gradient(180deg,#06202e,#0d4b5c)'],snow:['눈밭','linear-gradient(180deg,#1b2733,#3b5266)'],gold:['황금','linear-gradient(180deg,#201808,#4a3810)'],mono:['먹색','linear-gradient(180deg,#101010,#1c1c1c)']};
+function canManage(rm){ return !!rm&&(rm.kind!=='group'||rm.created_by===me.id); }
+function paintBg(){ var b=$('#msgs'); if(!b||!cur) return; var d=BGS[cur.bg]; b.style.background=d&&d[1]?d[1]:''; }
+function bgModal(){ if(!V3){ toast('아직 준비 중이에요'); return; }
+  var md=el('div','modal'), box=el('div','box'); box.appendChild(el('h3','','🖼 방 배경'));
+  var g=el('div',''); g.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 16px';
+  Object.keys(BGS).forEach(function(k){ var c=el('button','',BGS[k][0]); c.style.cssText='height:54px;border-radius:10px;border:2px solid '+((cur.bg||'none')===k?'#ffd54a':'#262626')+';color:#fff;font-size:13px;cursor:pointer;background:'+(BGS[k][1]||'#0d0d0d');
+    c.onclick=async function(){ var r=await sb.rpc('ffc_set_bg',{rid:cur.id,k:k==='none'?'':k}); if(r.error){ toast('바꾸지 못했어요'); return; } cur.bg=k==='none'?null:k; var rm=rooms.find(function(x){return x.id===cur.id;}); if(rm) rm.bg=cur.bg; md.remove(); paintBg(); };
+    g.appendChild(c); });
+  box.appendChild(g); var act=el('div','act'); var no=el('button','','닫기'); no.onclick=function(){ md.remove(); }; act.appendChild(no); box.appendChild(act);
+  md.appendChild(box); md.onclick=function(e){ if(e.target===md) md.remove(); }; document.body.appendChild(md); }
 function noticeModal(){ if(!V3){ toast('아직 준비 중이에요'); return; }
   var md=el('div','modal'), box=el('div','box'); box.appendChild(el('h3','','📌 공지'));
   var ta=el('textarea','ntx'); ta.maxLength=300; ta.rows=4; ta.placeholder='모두에게 보일 공지를 적어 주세요'; ta.value=cur.notice||''; box.appendChild(ta);
@@ -831,7 +844,7 @@ function subscribeExt(ch){
   if(!V2) return ch;
   if(V3) ch=ch.on('postgres_changes',{event:'UPDATE',schema:'public',table:'ffc_msgs'},function(p){ var d=p.new; if(!d||!cur||d.room_id!==cur.id) return; var m=msgs.find(function(x){ return x.id===d.id; }); if(m){ m.kind=d.kind; m.body=d.body; m.meta=d.meta; paintMsgs(false); } })
     .on('postgres_changes',{event:'*',schema:'public',table:'ffc_reacts'},function(p){ var d=p.eventType==='DELETE'?p.old:p.new; if(!d||!cur||d.room_id!==cur.id) return; var a=reacts[d.msg_id]=(reacts[d.msg_id]||[]).filter(function(x){ return !(x.user_id===d.user_id&&x.emoji===d.emoji); }); if(p.eventType!=='DELETE') a.push(d); paintMsgs(false); })
-    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'ffc_rooms'},function(p){ var d=p.new; if(!d) return; var rm=rooms.find(function(x){ return x.id===d.id; }); if(rm) rm.notice=d.notice||null; if(cur&&cur.id===d.id){ cur.notice=d.notice||null; paintNotice(); } });
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'ffc_rooms'},function(p){ var d=p.new; if(!d) return; var rm=rooms.find(function(x){ return x.id===d.id; }); if(rm){ rm.notice=d.notice||null; rm.bg=d.bg||null; } if(cur&&cur.id===d.id){ cur.notice=d.notice||null; cur.bg=d.bg||null; paintNotice(); paintBg(); } });
   return ch.on('postgres_changes',{event:'*',schema:'public',table:'ffc_bets'},function(p){ var d=p.new; if(d&&d.id){ bets[d.id]=d; nameOf([d.a,d.b]).then(function(){ if(cur&&d.room_id===cur.id) paintMsgs(false); }); } })
            .on('postgres_changes',{event:'*',schema:'public',table:'ffc_brackets'},function(p){ var d=p.new; if(d&&d.id){ brackets[d.id]=d; if(cur&&d.room_id===cur.id) paintMsgs(false); } });
 }
@@ -851,7 +864,7 @@ async function syncNow(full){
     }
     if(full||Date.now()-roomsAt>30000){
       roomsAt=Date.now(); var id=cur&&cur.id; await loadRooms();
-      if(id){ var rm=rooms.find(function(x){return x.id===id;}); if(rm){ rm.unread=0; cur.members=rm.members; cur.created_by=rm.created_by; cur.notice=rm.notice; if(typeof paintHead==='function') paintHead(); } }
+      if(id){ var rm=rooms.find(function(x){return x.id===id;}); if(rm){ rm.unread=0; cur.members=rm.members; cur.created_by=rm.created_by; cur.notice=rm.notice; cur.bg=rm.bg; if(typeof paintHead==='function') paintHead(); } }
       paintList();
     }
   }catch(e){} finally{ syncBusy=false; }
