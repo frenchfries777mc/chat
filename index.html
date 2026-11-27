@@ -1223,15 +1223,15 @@ async function toggleReact(m,e){ if(!V3){ toast('아직 준비 중이에요'); r
 function reactRow(m){ var a=reacts[m.id]; if(!a||!a.length) return null; var g={}; a.forEach(function(x){ (g[x.emoji]=g[x.emoji]||[]).push(x.user_id); });
   var r=el('div','rx'); EMO.forEach(function(e){ if(!g[e]) return; var b=el('button','rxc'+(g[e].indexOf(me.id)>=0?' on':''),e+' '+g[e].length); b.title=g[e].map(function(i){ return names[i]||'?'; }).join(', '); b.onclick=function(){ toggleReact(m,e); }; r.appendChild(b); }); return r; }
 /* 메시지 메뉴 (길게 누르기 · 오른쪽 클릭 · ⋯) */
-function canUnsend(m){ return V3&&m.user_id===me.id&&m.kind!=='del'&&['text','sticker','image','result',undefined,null].indexOf(m.kind)>=0&&Date.now()-new Date(m.created_at).getTime()<300000; }
+function canUnsend(m){ return V3&&m.user_id===me.id&&m.kind!=='del'&&['text','sticker','image','result','ai',undefined,null].indexOf(m.kind)>=0; }
 function msgMenu(m,anchor){
   var old=$('.mmenu'); if(old) old.remove(); if(m.kind==='del') return;
   var mn=el('div','mmenu'); var er=el('div','er'); EMO.forEach(function(e){ var b=el('button','',e); b.onclick=function(){ mn.remove(); toggleReact(m,e); }; er.appendChild(b); }); mn.appendChild(er);
   var rp=el('button','it','↩ 답장'); rp.onclick=function(){ mn.remove(); setReply(m); }; mn.appendChild(rp);
   if(m.kind==='text'||!m.kind||m.kind==='ai'){ var cp=el('button','it','📋 복사'); cp.onclick=function(){ mn.remove(); try{ navigator.clipboard.writeText(m.body).then(function(){ toast('복사했어요'); },function(){}); }catch(e){} }; mn.appendChild(cp); }
   if(m.user_id!==me.id&&m.id){ var rpt=el('button','it','🚩 신고'); rpt.onclick=function(){ mn.remove(); reportModal(m); }; mn.appendChild(rpt); }
-  if(canUnsend(m)){ var del=el('button','it del','🗑 지우기 (5분 안)'), armed=false; del.onclick=async function(){ if(!armed){ armed=true; del.textContent='한 번 더 누르면 지워요'; return; } mn.remove();
-    var r=await sb.rpc('ffc_unsend',{mid:m.id}); if(r.error){ toast('5분이 지나서 지울 수 없어요'); return; } m.kind='del'; m.body='삭제된 메시지예요'; m.meta=null; paintMsgs(false); }; mn.appendChild(del); }
+  if(canUnsend(m)){ var del=el('button','it del','🗑 지우기'), armed=false; del.onclick=async function(){ if(!armed){ armed=true; del.textContent='한 번 더 누르면 지워요'; return; } mn.remove();
+    var r=await sb.rpc('ffc_unsend',{mid:m.id}); if(r.error){ toast('지우지 못했어요'); return; } m.kind='del'; m.body='삭제된 메시지예요'; m.meta=null; paintMsgs(false); }; mn.appendChild(del); }
   document.body.appendChild(mn); var rc=anchor.getBoundingClientRect(), w=mn.offsetWidth, h=mn.offsetHeight;
   mn.style.left=Math.max(8,Math.min(innerWidth-w-8,rc.left+rc.width/2-w/2))+'px'; mn.style.top=(rc.top-h-6>8?rc.top-h-6:Math.min(innerHeight-h-8,rc.bottom+6))+'px';
   setTimeout(function(){ document.addEventListener('click',function h2(ev){ if(!mn.contains(ev.target)){ mn.remove(); document.removeEventListener('click',h2); } }); },0);
